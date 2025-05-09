@@ -3,7 +3,7 @@ package spring.project.urlShortener.services;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import spring.project.urlShortener.config.StringConfig;
+import spring.project.urlShortener.config.StringGenerator;
 import spring.project.urlShortener.models.dtos.ResponseDto;
 import spring.project.urlShortener.models.dtos.UrlDto;
 import spring.project.urlShortener.models.entities.Url;
@@ -13,17 +13,19 @@ import spring.project.urlShortener.repository.UrlRepository;
 @Service
 public class UrlService {
     private final UrlRepository urlRepository;
+    private final StringGenerator stringGenerator;
 
     @Autowired
-    public UrlService(UrlRepository urlRepository) {
+    public UrlService(UrlRepository urlRepository, StringGenerator stringGenerator) {
         this.urlRepository = urlRepository;
+        this.stringGenerator = stringGenerator;
     }
 
     @Transactional
     public ResponseDto<Url> createUrl(UrlDto urlDto) {
         Url url = new Url();
         url.setLongUrl(urlDto.getLongUrl());
-        String urlString = StringConfig.generateString();
+        String urlString = stringGenerator.generateString();
         boolean shortUrlString = urlRepository.existsUrlByShortenedUrlString(urlString);
         if (shortUrlString) {
             return ResponseDto.<Url>builder()

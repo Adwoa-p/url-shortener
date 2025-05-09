@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 
 @Service
-public class StringConfig {
+public class StringGenerator {
 
-    public static String generateString(){
+    public String generateString(){
 
         SecureRandom secureRandom = new SecureRandom();
 
