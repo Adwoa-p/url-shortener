@@ -2,6 +2,7 @@ package spring.project.urlShortener.models.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -27,8 +28,17 @@ public class Url {
 
     private String longUrl;
     private String shortenedUrlString;
+
+    @CreationTimestamp
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
+
+    @PrePersist
+    public void onCreate(){
+        this.createdAt = LocalDateTime.now();
+        this.expiresAt = createdAt.plusDays(90);
+    }
+
 
     public Long getId() {
         return id;

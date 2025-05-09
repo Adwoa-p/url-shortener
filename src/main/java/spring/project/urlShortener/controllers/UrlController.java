@@ -22,6 +22,11 @@ public class UrlController {
         return new ResponseEntity<>(urlService.createUrl(urlDto), HttpStatus.CREATED);
     }
 
+    @PostMapping("/create-custom-url")
+    public ResponseEntity<ResponseDto<Url>> createCustomUrl(@RequestBody final UrlDto urlDto) {
+        return new ResponseEntity<>(urlService.createCustomUrl(urlDto), HttpStatus.CREATED);
+    }
+
     @GetMapping("{short-url}")
     public String redirect(@PathVariable("short-url") String shortUrl) {
         return null;

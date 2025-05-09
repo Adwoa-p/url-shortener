@@ -21,7 +21,6 @@ public class UrlService {
         this.stringGenerator = stringGenerator;
     }
 
-    @Transactional
     public ResponseDto<Url> createUrl(UrlDto urlDto) {
         Url url = new Url();
         url.setLongUrl(urlDto.getLongUrl());
@@ -39,4 +38,22 @@ public class UrlService {
                 .response(url)
                 .build();
     }
+
+    public ResponseDto<Url> createCustomUrl(UrlDto urlDto){
+        Url url = new Url();
+        url.setLongUrl(urlDto.getLongUrl());
+        url.setShortenedUrlString(urlDto.getCustomUrlString());
+        boolean customUrlString = urlRepository.existsUrlByShortenedUrlString(urlDto.getCustomUrlString());
+        if (customUrlString) {
+            return ResponseDto.<Url>builder()
+                    .message("ShortUrl already exists. Try again with another")
+                    .build();
+        }
+        urlRepository.save(url);
+        return ResponseDto.<Url>builder()
+                .message(String.format("ShortUrl with id %d created", url.getId()))
+                .response(url)
+                .build();
+    }
+
 }

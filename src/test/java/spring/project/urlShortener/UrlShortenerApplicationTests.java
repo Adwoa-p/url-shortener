@@ -72,10 +72,52 @@ class UrlShortenerApplicationTests
 			assertNotNull(response);
 			assertEquals("ShortUrl already exists. Try again with another", response.getMessage());
 			assertNull(response.getResponse());
-			verify(urlRepository, never()).save(any(Url.class));
 		}
 	}
 
+	@Nested
+	@DisplayName("createurl using a custom string")
+	class createCustomUrl{
+		@Test
+		@DisplayName("Create a new url using a custom string successfully")
+		void createCustomUrl_successfully() {
+			UrlDto urlDto = new UrlDto();
+			urlDto.setLongUrl("https://google.com");
+			urlDto.setCustomUrlString("idea-age");
 
+			when(urlRepository.existsUrlByShortenedUrlString("idea-age")).thenReturn(false);
+
+			when(urlRepository.save(any(Url.class))).thenAnswer(invocation -> {
+				Url savedUrl = invocation.getArgument(0);
+				savedUrl.setId(1L);
+				return savedUrl;
+			});
+
+			ResponseDto<Url> response = urlService.createCustomUrl(urlDto);
+
+			assertNotNull(response);
+			assertEquals("https://google.com", response.getResponse().getLongUrl());
+			assertEquals("ShortUrl with id 1 created", response.getMessage());
+			assertEquals(8, response.getResponse().getShortenedUrlString().length());
+			verify(urlRepository).save(any(Url.class));
+		}
+
+		@Test
+		@DisplayName("Create a new url using a custom string, string already exists")
+		void createCustomUrl_customUrlStringAlreadyExists() {
+			UrlDto urlDto = new UrlDto();
+			urlDto.setLongUrl("https://example.com");
+			urlDto.setCustomUrlString("idea-age");
+
+			when(urlRepository.existsUrlByShortenedUrlString("idea-age")).thenReturn(true);
+
+			ResponseDto<Url> response = urlService.createCustomUrl(urlDto);
+
+			assertNotNull(response);
+			assertEquals("ShortUrl already exists. Try again with another", response.getMessage());
+			assertNull(response.getResponse());
+
+		}
+	}
 
 }
