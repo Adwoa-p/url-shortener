@@ -16,7 +16,7 @@ public class StringConfig {
 
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0; i < 8; i++){
-            stringBuilder.append(characters.charAt(randomInt % characters.length()));
+            stringBuilder.append(characters.charAt(Math.abs(randomInt)% characters.length()));
             randomInt /= characters.length();
         }
 
