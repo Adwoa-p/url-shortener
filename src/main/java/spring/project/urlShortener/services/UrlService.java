@@ -56,4 +56,10 @@ public class UrlService {
                 .response(url)
                 .build();
     }
+
+
+    public RedirectView getUrl(String shortenedUrlString) {
+        Url longUrl = urlRepository.findByShortenedUrlString(shortenedUrlString);
+        return new RedirectView(longUrl.getLongUrl());
+    }
 }

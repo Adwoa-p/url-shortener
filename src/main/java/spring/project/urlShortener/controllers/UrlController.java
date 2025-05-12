@@ -31,4 +31,11 @@ public class UrlController {
     public ResponseEntity<ResponseDto<Url>> createCustomUrl(@RequestBody final UrlDto urlDto) {
         return new ResponseEntity<>(urlService.createCustomUrl(urlDto), HttpStatus.CREATED);
     }
+
+
+    @GetMapping("{short-url}")
+    @Operation(summary = "Redirect to page for longUrl")
+    public RedirectView redirect(@PathVariable("short-url") String shortUrlString) {
+        return urlService.getUrl(shortUrlString);
+    }
 }
