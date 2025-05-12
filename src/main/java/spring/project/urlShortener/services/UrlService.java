@@ -3,6 +3,7 @@ package spring.project.urlShortener.services;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.view.RedirectView;
 import spring.project.urlShortener.config.StringGenerator;
 import spring.project.urlShortener.models.dtos.ResponseDto;
 import spring.project.urlShortener.models.dtos.UrlDto;
@@ -55,5 +56,4 @@ public class UrlService {
                 .response(url)
                 .build();
     }
-
 }
