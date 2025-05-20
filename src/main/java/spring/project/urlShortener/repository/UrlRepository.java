@@ -5,4 +5,6 @@ import spring.project.urlShortener.models.entities.Url;
 
 public interface UrlRepository extends JpaRepository<Url, Long> {
     boolean existsUrlByShortenedUrlString(String s);
+
+    Url findByShortenedUrlString(String shortenedUrlString);
 }
