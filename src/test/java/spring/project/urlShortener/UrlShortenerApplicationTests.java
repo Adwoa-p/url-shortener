@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.servlet.view.RedirectView;
 import spring.project.urlShortener.config.StringGenerator;
 import spring.project.urlShortener.models.dtos.ResponseDto;
 import spring.project.urlShortener.models.dtos.UrlDto;
@@ -15,6 +16,8 @@ import spring.project.urlShortener.services.UrlService;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.*;
+
+import java.time.LocalDateTime;
 
 @ExtendWith(MockitoExtension.class)
 class UrlShortenerApplicationTests
@@ -120,4 +123,44 @@ class UrlShortenerApplicationTests
 		}
 	}
 
+	@Nested
+	@DisplayName("redirect method")
+	class redirect{
+		@Test
+		@DisplayName("Redirect to page for longUrl successfully")
+		void redirect_successfully() {
+			String shortUrlString = "idea-age";
+
+			Url longUrl = new Url();
+			longUrl.setLongUrl("https://google.com");
+			longUrl.setCreatedAt(LocalDateTime.now());
+			longUrl.setExpiresAt(LocalDateTime.now().plusDays(2));
+
+			when(urlRepository.findByShortenedUrlString(shortUrlString)).thenReturn(longUrl);
+
+			RedirectView actualRedirectView = urlService.getUrl(shortUrlString);
+
+			assertEquals(longUrl.getLongUrl(), actualRedirectView.getUrl());
+
+		}
+
+		@Test
+		@DisplayName("Redirect to page for longUrl, url not found")
+		void redirect_urlExpired_urlNotFound() {
+			String shortUrlString = "idea-age";
+
+			Url expiredUrl = new Url();
+			expiredUrl.setLongUrl("https://google.com");
+			expiredUrl.setCreatedAt(LocalDateTime.now());
+			expiredUrl.setExpiresAt(LocalDateTime.now().minusDays(2));
+			expiredUrl.setIsExpired(false);
+
+			when(urlRepository.findByShortenedUrlString(shortUrlString)).thenReturn(expiredUrl);
+
+			RedirectView redirectView = urlService.getUrl(shortUrlString);
+
+			assertEquals("/error", redirectView.getUrl());
+			assertTrue(expiredUrl.getIsExpired());
+		}
+	}
 }

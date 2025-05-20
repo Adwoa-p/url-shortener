@@ -10,6 +10,8 @@ import spring.project.urlShortener.models.dtos.UrlDto;
 import spring.project.urlShortener.models.entities.Url;
 import spring.project.urlShortener.repository.UrlRepository;
 
+import java.time.LocalDateTime;
+
 
 @Service
 public class UrlService {
@@ -60,6 +62,11 @@ public class UrlService {
 
     public RedirectView getUrl(String shortenedUrlString) {
         Url longUrl = urlRepository.findByShortenedUrlString(shortenedUrlString);
+        if (LocalDateTime.now().isAfter(longUrl.getExpiresAt())) {
+            longUrl.setIsExpired(true);
+            urlRepository.save(longUrl);
+            return new RedirectView("/error") ;
+        }
         return new RedirectView(longUrl.getLongUrl());
     }
 }
