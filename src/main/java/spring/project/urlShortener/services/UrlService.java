@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.view.RedirectView;
 import spring.project.urlShortener.config.StringGenerator;
+import spring.project.urlShortener.config.URLValidator;
+import spring.project.urlShortener.exceptions.ResourceNotFoundException;
 import spring.project.urlShortener.models.dtos.ResponseDto;
 import spring.project.urlShortener.models.dtos.UrlDto;
 import spring.project.urlShortener.models.entities.Url;
@@ -17,14 +19,19 @@ import java.time.LocalDateTime;
 public class UrlService {
     private final UrlRepository urlRepository;
     private final StringGenerator stringGenerator;
+    private final URLValidator urlValidator;
 
     @Autowired
-    public UrlService(UrlRepository urlRepository, StringGenerator stringGenerator) {
+    public UrlService(UrlRepository urlRepository, StringGenerator stringGenerator, URLValidator urlValidator) {
         this.urlRepository = urlRepository;
         this.stringGenerator = stringGenerator;
+        this.urlValidator = urlValidator;
     }
 
     public ResponseDto<Url> createUrl(UrlDto urlDto) {
+        if (!urlValidator.isValidUrl(urlDto.getLongUrl())) {
+            throw new ResourceNotFoundException("Url not found, it's invalid");
+        }
         Url url = new Url();
         url.setLongUrl(urlDto.getLongUrl());
         String urlString = stringGenerator.generateString();
@@ -43,6 +50,9 @@ public class UrlService {
     }
 
     public ResponseDto<Url> createCustomUrl(UrlDto urlDto){
+        if (!urlValidator.isValidUrl(urlDto.getLongUrl())) {
+            throw new ResourceNotFoundException("Url not found, it's invalid");
+        }
         Url url = new Url();
         url.setLongUrl(urlDto.getLongUrl());
         url.setShortenedUrlString(urlDto.getCustomUrlString());
@@ -65,8 +75,12 @@ public class UrlService {
         if (LocalDateTime.now().isAfter(longUrl.getExpiresAt())) {
             longUrl.setIsExpired(true);
             urlRepository.save(longUrl);
-            return new RedirectView("/error") ;
+            return new RedirectView("/error");
         }
-        return new RedirectView(longUrl.getLongUrl());
+        if (urlValidator.isValidUrl(longUrl.getLongUrl())) {
+            return new RedirectView(longUrl.getLongUrl());
+        } else {
+            return new RedirectView("/error");
+        }
     }
 }
