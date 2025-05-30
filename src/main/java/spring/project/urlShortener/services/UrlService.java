@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.view.RedirectView;
 import spring.project.urlShortener.config.StringGenerator;
 import spring.project.urlShortener.config.URLValidator;
+import spring.project.urlShortener.exceptions.ResourceAlreadyExistsException;
 import spring.project.urlShortener.exceptions.ResourceNotFoundException;
 import spring.project.urlShortener.models.dtos.ResponseDto;
 import spring.project.urlShortener.models.dtos.UrlDto;
@@ -13,6 +14,7 @@ import spring.project.urlShortener.models.entities.Url;
 import spring.project.urlShortener.repository.UrlRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Service
@@ -31,6 +33,12 @@ public class UrlService {
     public ResponseDto<Url> createUrl(UrlDto urlDto) {
         if (!urlValidator.isValidUrl(urlDto.getLongUrl())) {
             throw new ResourceNotFoundException("Url not found, it's invalid");
+        }
+        Optional<Url> existingUrl = urlRepository.findByLongUrl(urlDto.getLongUrl());
+        if (existingUrl.isPresent()) {
+            throw new ResourceAlreadyExistsException(
+                    String.format("The short url for %s already exists", urlDto.getLongUrl())
+            );
         }
         Url url = new Url();
         url.setLongUrl(urlDto.getLongUrl());
@@ -53,13 +61,20 @@ public class UrlService {
         if (!urlValidator.isValidUrl(urlDto.getLongUrl())) {
             throw new ResourceNotFoundException("Url not found, it's invalid");
         }
+        Optional<Url> existingUrl = urlRepository.findByLongUrl(urlDto.getLongUrl());
+        if (existingUrl.isPresent()) {
+            throw new ResourceAlreadyExistsException(
+                    String.format("The short url for %s already exists", urlDto.getLongUrl())
+            );
+        }
         Url url = new Url();
         url.setLongUrl(urlDto.getLongUrl());
         url.setShortenedUrlString(urlDto.getCustomUrlString());
         boolean customUrlString = urlRepository.existsUrlByShortenedUrlString(urlDto.getCustomUrlString());
         if (customUrlString) {
             return ResponseDto.<Url>builder()
-                    .message("ShortUrl already exists. Try again with another")
+                    .message("Custom" +
+                            "Url already exists. Try again with another")
                     .build();
         }
         urlRepository.save(url);
@@ -68,7 +83,6 @@ public class UrlService {
                 .response(url)
                 .build();
     }
-
 
     public RedirectView getUrl(String shortenedUrlString) {
         Url longUrl = urlRepository.findByShortenedUrlString(shortenedUrlString);
