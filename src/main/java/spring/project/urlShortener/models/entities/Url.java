@@ -36,11 +36,14 @@ public class Url {
     private LocalDateTime expiresAt;
 
     private Boolean isExpired;
+    private Boolean isDeleted;
 
     @PrePersist
     public void onCreate(){
         this.createdAt = LocalDateTime.now();
         this.expiresAt = createdAt.plusDays(90);
+        this.isExpired = false;
+        this.isDeleted = false;
     }
 
 }
