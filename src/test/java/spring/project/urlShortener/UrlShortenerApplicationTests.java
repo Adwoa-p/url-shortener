@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.servlet.view.RedirectView;
 import spring.project.urlShortener.config.StringGenerator;
 import spring.project.urlShortener.config.URLValidator;
 import spring.project.urlShortener.exceptions.ResourceAlreadyExistsException;
@@ -49,9 +48,9 @@ class UrlShortenerApplicationTests
 			UrlDto urlDto = new UrlDto();
 			urlDto.setLongUrl("https://google.com");
 
-			when(urlRepository.findByLongUrl("https://google.com")).thenReturn(Optional.empty());
+			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://google.com")).thenReturn(Optional.empty());
 			when(stringGenerator.generateString()).thenReturn("ShortUrl");
-			when(urlRepository.existsUrlByShortenedUrlString("ShortUrl")).thenReturn(false);
+			when(urlRepository.existsUrlByShortenedUrlStringAndIsDeletedIsFalse("ShortUrl")).thenReturn(false);
 			when(urlValidator.isValidUrl("https://google.com")).thenReturn(true);
 
 			when(urlRepository.save(any(Url.class))).thenAnswer(invocation -> {
@@ -74,9 +73,9 @@ class UrlShortenerApplicationTests
 			UrlDto urlDto = new UrlDto();
 			urlDto.setLongUrl("https://example.com");
 
-			when(urlRepository.findByLongUrl("https://example.com")).thenReturn(Optional.empty());
+			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://example.com")).thenReturn(Optional.empty());
 			when(stringGenerator.generateString()).thenReturn("ShortUrl");
-			when(urlRepository.existsUrlByShortenedUrlString("ShortUrl")).thenReturn(true);
+			when(urlRepository.existsUrlByShortenedUrlStringAndIsDeletedIsFalse("ShortUrl")).thenReturn(true);
 			when(urlValidator.isValidUrl("https://example.com")).thenReturn(true);
 
 			ResponseDto<Url> response = urlService.createUrl(urlDto);
@@ -109,7 +108,7 @@ class UrlShortenerApplicationTests
 			url.setLongUrl("https://example.com");
 
 			when(urlValidator.isValidUrl("https://example.com")).thenReturn(true);
-			when(urlRepository.findByLongUrl("https://example.com")).thenReturn(Optional.of(url));
+			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://example.com")).thenReturn(Optional.of(url));
 
 			assertThrows(ResourceAlreadyExistsException.class, () -> {
 				urlService.createUrl(urlDto);
@@ -127,9 +126,9 @@ class UrlShortenerApplicationTests
 			urlDto.setLongUrl("https://google.com");
 			urlDto.setCustomUrlString("idea-age");
 
-			when(urlRepository.existsUrlByShortenedUrlString("idea-age")).thenReturn(false);
+			when(urlRepository.existsUrlByShortenedUrlStringAndIsDeletedIsFalse("idea-age")).thenReturn(false);
 			when(urlValidator.isValidUrl("https://google.com")).thenReturn(true);
-			when(urlRepository.findByLongUrl("https://google.com")).thenReturn(Optional.empty());
+			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://google.com")).thenReturn(Optional.empty());
 
 			when(urlRepository.save(any(Url.class))).thenAnswer(invocation -> {
 				Url savedUrl = invocation.getArgument(0);
@@ -153,14 +152,14 @@ class UrlShortenerApplicationTests
 			urlDto.setLongUrl("https://example.com");
 			urlDto.setCustomUrlString("idea-age");
 
-			when(urlRepository.existsUrlByShortenedUrlString("idea-age")).thenReturn(true);
+			when(urlRepository.existsUrlByShortenedUrlStringAndIsDeletedIsFalse("idea-age")).thenReturn(true);
 			when(urlValidator.isValidUrl("https://example.com")).thenReturn(true);
-			when(urlRepository.findByLongUrl("https://example.com")).thenReturn(Optional.empty());
+			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://example.com")).thenReturn(Optional.empty());
 
 			ResponseDto<Url> response = urlService.createCustomUrl(urlDto);
 
 			assertNotNull(response);
-			assertEquals("CustomUrl already exists. Try again with another", response.getMessage());
+			assertEquals("Custom Url already exists. Try again with another", response.getMessage());
 			assertNull(response.getResponse());
 
 		}
@@ -185,7 +184,7 @@ class UrlShortenerApplicationTests
 			urlDto.setCustomUrlString("idea-age");
 
 			when(urlValidator.isValidUrl("https://example.com")).thenReturn(true);
-			when(urlRepository.findByLongUrl("https://example.com")).thenReturn(Optional.of(new Url()));
+			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://example.com")).thenReturn(Optional.of(new Url()));
 			assertThrows(ResourceAlreadyExistsException.class, () -> {
 				urlService.createCustomUrl(urlDto);
 			});
@@ -205,17 +204,19 @@ class UrlShortenerApplicationTests
 			longUrl.setCreatedAt(LocalDateTime.now());
 			longUrl.setExpiresAt(LocalDateTime.now().plusDays(2));
 
-			when(urlRepository.findByShortenedUrlString(shortUrlString)).thenReturn(longUrl);
+			when(urlRepository.findByShortenedUrlStringAndIsDeletedIsFalse(shortUrlString)).thenReturn(Optional.of(longUrl));
 			when(urlValidator.isValidUrl("https://google.com")).thenReturn(true);
 
-			RedirectView actualRedirectView = urlService.getUrl(shortUrlString);
+			ResponseDto<Url> redirect = urlService.redirect(shortUrlString);
 
-			assertEquals(longUrl.getLongUrl(), actualRedirectView.getUrl());
+			assertEquals("Redirecting to long url", redirect.getMessage());
+			assertNotNull(redirect.getResponse());
+			assertEquals(longUrl, redirect.getResponse());
 
 		}
 
 		@Test
-		@DisplayName("Redirect to page for longUrl, url not found")
+		@DisplayName("Redirect to page for longUrl, by returning URL details, url not found")
 		void redirect_urlExpired() {
 			String shortUrlString = "idea-age";
 
@@ -225,12 +226,11 @@ class UrlShortenerApplicationTests
 			expiredUrl.setExpiresAt(LocalDateTime.now().minusDays(2));
 			expiredUrl.setIsExpired(false);
 
-			when(urlRepository.findByShortenedUrlString(shortUrlString)).thenReturn(expiredUrl);
+			when(urlRepository.findByShortenedUrlStringAndIsDeletedIsFalse(shortUrlString)).thenReturn(Optional.of(expiredUrl));
 
-			RedirectView redirectView = urlService.getUrl(shortUrlString);
+			ResponseDto<Url> redirect = urlService.redirect(shortUrlString);
 
-			assertEquals("/error", redirectView.getUrl());
-			assertTrue(expiredUrl.getIsExpired());
+			assertEquals("URL not found, it's invalid or expired", redirect.getMessage());
 		}
 
 		@Test
@@ -243,13 +243,102 @@ class UrlShortenerApplicationTests
 			longUrl.setCreatedAt(LocalDateTime.now());
 			longUrl.setExpiresAt(LocalDateTime.now().plusDays(2));
 
-			when(urlRepository.findByShortenedUrlString(shortUrlString)).thenReturn(longUrl);
+			when(urlRepository.findByShortenedUrlStringAndIsDeletedIsFalse(shortUrlString)).thenReturn(Optional.of(longUrl));
 			when(urlValidator.isValidUrl("https://google.com")).thenReturn(false);
 
-			RedirectView redirectView = urlService.getUrl(shortUrlString);
+			ResponseDto<Url> redirect = urlService.redirect(shortUrlString);
 
-			assertEquals("/error", redirectView.getUrl());
+			assertEquals("URL not found, it's invalid or expired", redirect.getMessage());
+		}
+	}
 
+	@Nested
+	@DisplayName("Get URL by ID")
+	class getUrl{
+		@Test
+		@DisplayName("Returns URL by id successfully")
+		void getUrl_successfully() {
+		Url longUrl = new Url();
+			longUrl.setLongUrl("https://google.com");
+			longUrl.setId(1L);
+
+			when(urlRepository.findByIdAndIsDeletedIsFalse(longUrl.getId())).thenReturn(Optional.of(longUrl));
+			ResponseDto<Url> result = urlService.getUrl(longUrl.getId());
+
+			assertEquals(longUrl, result.getResponse());
+			assertEquals("Returning long url by ID", result.getMessage());
+		}
+
+		@Test
+		@DisplayName("URL with id doesn't exist")
+		void getUrl_doesNotExist() {
+			Url longUrl = new Url();
+
+			when(urlRepository.findByIdAndIsDeletedIsFalse(longUrl.getId())).thenReturn(Optional.empty());
+
+			assertThrows(ResourceNotFoundException.class, () -> {urlService.getUrl(longUrl.getId());});
+		}
+	}
+
+	@Nested
+	@DisplayName("Update url")
+	class updateUrl{
+		@Test
+		@DisplayName("update url object details successfully")
+		void updateUrl_successfully() {
+			UrlDto urlDto = new UrlDto();
+			urlDto.setCustomUrlString("ggl-ml");
+
+			Url longUrl = new Url();
+			longUrl.setLongUrl("https://google.com");
+			longUrl.setId(1L);
+
+			when(urlRepository.findByIdAndIsDeletedIsFalse(longUrl.getId())).thenReturn(Optional.of(longUrl));
+			longUrl.setShortenedUrlString(urlDto.getCustomUrlString());
+			when(urlRepository.save(longUrl)).thenReturn(longUrl);
+
+			ResponseDto<String> result = urlService.updateUrl(longUrl.getId(), urlDto);
+
+			assertEquals("Successfully updated url with id %d", result.getMessage());
+			assertEquals("ggl-ml", longUrl.getShortenedUrlString());
+		}
+
+		@Test
+		@DisplayName("Url Object doesn't exist")
+		void updateUrl_doesNotExist() {
+			UrlDto urlDto = new UrlDto();
+
+			assertThrows(ResourceNotFoundException.class, () -> {urlService.updateUrl(1L, urlDto);});
+		}
+	}
+
+	@Nested
+	@DisplayName("Delete url")
+	class deleteUrl{
+		@Test
+		@DisplayName("Delete url object successfully")
+		void deleteUrl_successfully() {
+			Url longUrl = new Url();
+			longUrl.setLongUrl("https://google.com");
+			longUrl.setId(1L);
+
+			when(urlRepository.findByIdAndIsDeletedIsFalse(longUrl.getId())).thenReturn(Optional.of(longUrl));
+			longUrl.setIsDeleted(true);
+			when(urlRepository.save(longUrl)).thenReturn(longUrl);
+
+			ResponseDto<String> result = urlService.deleteUrl(longUrl.getId());
+
+			assertEquals("Successfully deleted url with id 1", result.getMessage());
+		}
+
+		@Test
+		@DisplayName("Url Object doesn't exist")
+		void deleteUrl_doesNotExist() {
+			Url longUrl = new Url();
+
+			when(urlRepository.findByIdAndIsDeletedIsFalse(longUrl.getId())).thenReturn(Optional.empty());
+
+			assertThrows(ResourceNotFoundException.class, () -> {urlService.deleteUrl(longUrl.getId());});
 		}
 	}
 }

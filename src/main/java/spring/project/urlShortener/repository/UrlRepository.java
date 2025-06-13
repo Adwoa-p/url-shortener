@@ -1,16 +1,20 @@
 package spring.project.urlShortener.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import spring.project.urlShortener.models.entities.Url;
 
 import java.util.Optional;
 
 public interface UrlRepository extends JpaRepository<Url, Long> {
-    boolean existsUrlByShortenedUrlString(String s);
+    boolean existsUrlByShortenedUrlStringAndIsDeletedIsFalse(String s);
 
-    Url findByShortenedUrlString(String shortenedUrlString);
+    Optional<Url> findByShortenedUrlStringAndIsDeletedIsFalse(String shortenedUrlString);
 
-    boolean existsUrlByLongUrl(String longUrl);
+    Page<Url> findAllByIsDeletedIsFalse(Pageable pageable);
 
-    Optional<Url> findByLongUrl(String longUrl);
+    Optional<Url> findByLongUrlAndIsDeletedIsFalse(String longUrl);
+
+    Optional<Url> findByIdAndIsDeletedIsFalse(Long id);
 }
