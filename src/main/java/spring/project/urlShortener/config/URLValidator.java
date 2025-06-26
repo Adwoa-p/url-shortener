@@ -14,16 +14,8 @@ public class URLValidator {
             return false;
         }
         try {
-            URL validUrl = new URL(url);
-            validUrl.toURI(); // validates url syntax
-
-            HttpURLConnection huc = (HttpURLConnection) validUrl.openConnection();
-            huc.setRequestMethod("HEAD");
-            huc.setConnectTimeout(3000);
-            huc.setReadTimeout(3000);
-            int responseCode = huc.getResponseCode();
-
-            return (responseCode >= 200 && responseCode < 400);
+            new URL(url).toURI();
+            return true;
         } catch (Exception e) {
             return false;
         }

@@ -1,12 +1,10 @@
 package spring.project.urlShortener.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import spring.project.urlShortener.config.StringGenerator;
 import spring.project.urlShortener.config.URLValidator;
 import spring.project.urlShortener.exceptions.ResourceNotFoundException;
 import spring.project.urlShortener.models.dtos.ResponseDto;
@@ -36,7 +34,7 @@ public class UrlService {
     }
 
     public ResponseDto<Url> createCustomUrl(UrlDto urlDto){
-        return check.createCustomUrlHandler(urlDto);
+        return check.createUrlHandler(urlDto);
     }
 
     public ResponseDto<Url> redirect(String shortenedUrlString) {
@@ -71,7 +69,7 @@ public class UrlService {
     }
 
     public ResponseDto<String> updateUrl(Long id, UrlDto urlDto) {
-        Url longUrl = urlRepository.findById(id)
+        Url longUrl = urlRepository.findByIdAndIsDeletedIsFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Long url with id %d not found", id)));
         longUrl.setLongUrl(urlDto.getLongUrl());
         longUrl.setShortenedUrlString(urlDto.getCustomUrlString());
