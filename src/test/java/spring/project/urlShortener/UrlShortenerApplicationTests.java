@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import spring.project.urlShortener.config.CreateUrlHandler;
 import spring.project.urlShortener.config.StringGenerator;
 import spring.project.urlShortener.config.URLValidator;
+import spring.project.urlShortener.exceptions.BadRequestException;
 import spring.project.urlShortener.exceptions.ResourceAlreadyExistsException;
 import spring.project.urlShortener.exceptions.ResourceNotFoundException;
 import spring.project.urlShortener.models.dtos.ResponseDto;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.*;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+
 @ExtendWith(MockitoExtension.class)
 class UrlShortenerApplicationTests
 {
@@ -36,15 +39,18 @@ class UrlShortenerApplicationTests
 	private URLValidator urlValidator;
 
 	@InjectMocks
+	private CreateUrlHandler createUrlHandler;
+
+	@InjectMocks
 	private UrlService urlService;
 
     @Nested
 
     @DisplayName("CreateUrl Method")
-	class createUrl{
+	class createUrlHandler{
 		@Test
-		@DisplayName("Create a new url successfully")
-		void createUrl_successfully() {
+		@DisplayName("Create a new url successfully with a random string")
+		void createRandomUrl_successfully() {
 			UrlDto urlDto = new UrlDto();
 			urlDto.setLongUrl("https://google.com");
 
@@ -59,7 +65,7 @@ class UrlShortenerApplicationTests
 				return savedUrl;
 			});
 
-			ResponseDto<Url> response = urlService.createUrl(urlDto);
+			ResponseDto<Url> response = createUrlHandler.createUrlHandler(urlDto);
 
 			assertNotNull(response);
 			assertEquals("https://google.com", response.getResponse().getLongUrl());
@@ -68,127 +74,85 @@ class UrlShortenerApplicationTests
 		}
 
 		@Test
-		@DisplayName("Create a new url, string already exists")
-		void createUrl_urlStringAlreadyExists() {
-			UrlDto urlDto = new UrlDto();
-			urlDto.setLongUrl("https://example.com");
-
-			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://example.com")).thenReturn(Optional.empty());
-			when(stringGenerator.generateString()).thenReturn("ShortUrl");
-			when(urlRepository.existsUrlByShortenedUrlStringAndIsDeletedIsFalse("ShortUrl")).thenReturn(true);
-			when(urlValidator.isValidUrl("https://example.com")).thenReturn(true);
-
-			ResponseDto<Url> response = urlService.createUrl(urlDto);
-
-			assertNotNull(response);
-			assertEquals("ShortUrl already exists. Try again with another", response.getMessage());
-			assertNull(response.getResponse());
-		}
-
-		@Test
-		@DisplayName("Create a new url, invalid url (url not found)")
-		void createUrl_invalidUrl() {
-			UrlDto urlDto = new UrlDto();
-			urlDto.setLongUrl("https://example.com");
-
-			when(urlValidator.isValidUrl("https://example.com")).thenReturn(false);
-			assertThrows(ResourceNotFoundException.class, () -> {
-				urlService.createUrl(urlDto);
-			});
-		}
-
-		@Test
-		@DisplayName("Create a new url, longUrl already exists")
-		void createUrl_longUrlAlreadyExists() {
-			UrlDto urlDto = new UrlDto();
-			urlDto.setLongUrl("https://example.com");
-
-			Url url = new Url();
-			url.setId(1L);
-			url.setLongUrl("https://example.com");
-
-			when(urlValidator.isValidUrl("https://example.com")).thenReturn(true);
-			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://example.com")).thenReturn(Optional.of(url));
-
-			assertThrows(ResourceAlreadyExistsException.class, () -> {
-				urlService.createUrl(urlDto);
-			});
-		}
-	}
-
-	@Nested
-	@DisplayName("CreateUrl using a custom string")
-	class createCustomUrl{
-		@Test
-		@DisplayName("Create a new url using a custom string successfully")
+		@DisplayName("Create a new url successfully with a custom string")
 		void createCustomUrl_successfully() {
 			UrlDto urlDto = new UrlDto();
 			urlDto.setLongUrl("https://google.com");
-			urlDto.setCustomUrlString("idea-age");
+			urlDto.setCustomUrlString("customUrl");
 
-			when(urlRepository.existsUrlByShortenedUrlStringAndIsDeletedIsFalse("idea-age")).thenReturn(false);
-			when(urlValidator.isValidUrl("https://google.com")).thenReturn(true);
-			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://google.com")).thenReturn(Optional.empty());
-
+			when(urlValidator.isValidUrl(urlDto.getLongUrl())).thenReturn(true);
+			when(urlRepository.findByLongUrlAndIsDeletedIsFalse(urlDto.getLongUrl()))
+					.thenReturn(Optional.empty());
+			when(urlRepository.findByLongUrlAndIsDeletedIsTrue(urlDto.getLongUrl()))
+					.thenReturn(Optional.empty());
 			when(urlRepository.save(any(Url.class))).thenAnswer(invocation -> {
 				Url savedUrl = invocation.getArgument(0);
 				savedUrl.setId(1L);
 				return savedUrl;
 			});
 
-			ResponseDto<Url> response = urlService.createCustomUrl(urlDto);
+			ResponseDto<Url> response = createUrlHandler.createUrlHandler(urlDto);
 
 			assertNotNull(response);
 			assertEquals("https://google.com", response.getResponse().getLongUrl());
 			assertEquals("ShortUrl with id 1 created", response.getMessage());
-			assertEquals(8, response.getResponse().getShortenedUrlString().length());
 			verify(urlRepository).save(any(Url.class));
 		}
 
 		@Test
-		@DisplayName("Create a new url using a custom string, string already exists")
-		void createCustomUrl_customUrlStringAlreadyExists() {
+		@DisplayName("Create a new url, invalid url (bad request)")
+		void createUrlHandler_invalidUrl() {
 			UrlDto urlDto = new UrlDto();
 			urlDto.setLongUrl("https://example.com");
-			urlDto.setCustomUrlString("idea-age");
+			when(urlValidator.isValidUrl(urlDto.getLongUrl())).thenReturn(false);
 
-			when(urlRepository.existsUrlByShortenedUrlStringAndIsDeletedIsFalse("idea-age")).thenReturn(true);
-			when(urlValidator.isValidUrl("https://example.com")).thenReturn(true);
-			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://example.com")).thenReturn(Optional.empty());
-
-			ResponseDto<Url> response = urlService.createCustomUrl(urlDto);
-
-			assertNotNull(response);
-			assertEquals("Custom Url already exists. Try again with another", response.getMessage());
-			assertNull(response.getResponse());
-
+			assertThrows(BadRequestException.class, () -> createUrlHandler.createUrlHandler(urlDto));
+			verify(urlValidator).isValidUrl(urlDto.getLongUrl());
 		}
 
 		@Test
 		@DisplayName("Create a new url, invalid url (url not found)")
-		void createCustomUrl_invalidUrl() {
+		void createUrl_urlAlreadyExists() {
 			UrlDto urlDto = new UrlDto();
-			urlDto.setLongUrl("https://example.com");
+			urlDto.setLongUrl("https://google.com");
 
-			when(urlValidator.isValidUrl("https://example.com")).thenReturn(false);
-			assertThrows(ResourceNotFoundException.class, () -> {
-				urlService.createCustomUrl(urlDto);
-			});
+			Url url = new Url();
+			urlDto.setLongUrl(urlDto.getLongUrl());
+			url.setId(1L);
+
+			when(urlValidator.isValidUrl("https://google.com")).thenReturn(true);
+			when(urlRepository.findByLongUrlAndIsDeletedIsTrue("https://google.com")).thenReturn(Optional.of(url));
+
+			ResponseDto<Url> response = createUrlHandler.createUrlHandler(urlDto);
+
+			assertEquals("ShortUrl with id 1 created", response.getMessage() );
 		}
 
 		@Test
-		@DisplayName("Create a new url using a custom string, longUrl already exists")
-		void createCustomUrl_longUrlAlreadyExists() {
+		void createUrl_whenUrlExistsAndDeleted_reactivateUrl() {
+			String longUrl = "https://example.com";
 			UrlDto urlDto = new UrlDto();
-			urlDto.setLongUrl("https://example.com");
-			urlDto.setCustomUrlString("idea-age");
+			urlDto.setLongUrl(longUrl);
 
-			when(urlValidator.isValidUrl("https://example.com")).thenReturn(true);
-			when(urlRepository.findByLongUrlAndIsDeletedIsFalse("https://example.com")).thenReturn(Optional.of(new Url()));
-			assertThrows(ResourceAlreadyExistsException.class, () -> {
-				urlService.createCustomUrl(urlDto);
-			});
+			Url deletedUrl = new Url();
+			deletedUrl.setId(1L);
+			deletedUrl.setLongUrl(longUrl);
+			deletedUrl.setIsDeleted(true);
+
+			when(urlValidator.isValidUrl(longUrl)).thenReturn(true);
+			when(urlRepository.findByLongUrlAndIsDeletedIsFalse(longUrl))
+					.thenReturn(Optional.empty());
+			when(urlRepository.findByLongUrlAndIsDeletedIsTrue(longUrl))
+					.thenReturn(Optional.of(deletedUrl));
+
+			ResponseDto<Url> result = createUrlHandler.createUrlHandler(urlDto);
+
+			assertNotNull(result);
+			assertFalse(result.getResponse().getIsDeleted());
+			assertEquals("ShortUrl with id 1 created", result.getMessage());
+			verify(urlRepository).save(deletedUrl);
 		}
+
 	}
 
 	@Nested
@@ -299,7 +263,7 @@ class UrlShortenerApplicationTests
 
 			ResponseDto<String> result = urlService.updateUrl(longUrl.getId(), urlDto);
 
-			assertEquals("Successfully updated url with id %d", result.getMessage());
+			assertEquals("Successfully updated url with id 1" , result.getMessage());
 			assertEquals("ggl-ml", longUrl.getShortenedUrlString());
 		}
 

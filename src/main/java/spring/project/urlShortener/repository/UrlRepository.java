@@ -17,4 +17,6 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     Optional<Url> findByLongUrlAndIsDeletedIsFalse(String longUrl);
 
     Optional<Url> findByIdAndIsDeletedIsFalse(Long id);
+
+    Optional<Url> findByLongUrlAndIsDeletedIsTrue(String longUrl);
 }

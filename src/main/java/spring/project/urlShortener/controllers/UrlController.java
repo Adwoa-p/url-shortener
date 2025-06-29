@@ -13,6 +13,7 @@ import spring.project.urlShortener.models.entities.Url;
 import spring.project.urlShortener.services.UrlService;
 
 @RestController
+@RequestMapping("/api")
 public class UrlController {
 
     public UrlController(UrlService urlService) {
@@ -21,27 +22,27 @@ public class UrlController {
 
     private final UrlService urlService;
 
-    @Operation(summary = "Create a new url with a random string")
-    @PostMapping("/create-url")
+    @Operation(summary = "Create a new shortened URL with a randomly generated string")
+    @PostMapping("/urls")
     public ResponseEntity<ResponseDto<Url>> createUrl(@RequestBody final UrlDto urlDto) {
         return new ResponseEntity<>(urlService.createUrl(urlDto), HttpStatus.CREATED);
     }
 
-    @PostMapping("/create-custom-url")
-    @Operation(summary = "Create a new url with a custom string")
+    @PostMapping("/urls/custom")
+    @Operation(summary = "Create a new shortened URL with a user-defined custom string")
     public ResponseEntity<ResponseDto<Url>> createCustomUrl(@RequestBody final UrlDto urlDto) {
         return new ResponseEntity<>(urlService.createCustomUrl(urlDto), HttpStatus.CREATED);
     }
 
 
-    @GetMapping("{short-url}")
-    @Operation(summary = "Redirect to page for longUrl")
+    @GetMapping("/r/{short-url}")
+    @Operation(summary = "Redirect to the original long URL")
     public ResponseEntity<ResponseDto<Url>> redirect (@PathVariable("short-url") String shortUrlString) {
         return new ResponseEntity<>(urlService.redirect(shortUrlString), HttpStatus.FOUND);
     }
 
-    @GetMapping("/")
-    @Operation(summary = "Returns all the urls passed in the db")
+    @GetMapping("/urls")
+    @Operation(summary = "Retrieve a list of all stored URL entries")
     public ResponseEntity<Page<Url>> getAllUrls(@RequestParam (value = "pageNo", defaultValue = "0", required = false) int pageNo,
                                                 @RequestParam (value="pageSize", defaultValue = "10", required = false) int pageSize,
                                                 @RequestParam (defaultValue = "title",  required = false) String sortBy,
@@ -49,20 +50,20 @@ public class UrlController {
         return new ResponseEntity<>(urlService.getAllUrls(pageNo, pageSize, sortBy, ascending), HttpStatus.OK);
     }
 
-    @GetMapping("url/{id}")
-    @Operation(summary = "Return Url details by id")
+    @GetMapping("urls/{id}")
+    @Operation(summary = "Retrieve URL details by ID")
     public ResponseEntity<ResponseDto<Url>> getUrlById(@PathVariable("id") Long id) {
         return new ResponseEntity<>(urlService.getUrl(id), HttpStatus.OK);
     }
 
-    @PutMapping("{id}")
-    @Operation(summary = "Update url details")
+    @PutMapping("/urls/{id}")
+    @Operation(summary = "Update the details of an existing URL entry")
     public ResponseEntity<ResponseDto<String>> updateUrl(@PathVariable("id") Long id, @RequestBody final UrlDto urlDto) {
         return new ResponseEntity<>(urlService.updateUrl(id,urlDto), HttpStatus.OK);
     }
 
-    @DeleteMapping("{id}")
-    @Operation(summary = "Delete url details")
+    @DeleteMapping("/urls/{id}")
+    @Operation(summary = "Delete an existing URL entry by its ID")
     public ResponseEntity<ResponseDto<String>> deleteUrl(@PathVariable("id") Long id) {
         return new ResponseEntity<>(urlService.deleteUrl(id), HttpStatus.OK);
     }
