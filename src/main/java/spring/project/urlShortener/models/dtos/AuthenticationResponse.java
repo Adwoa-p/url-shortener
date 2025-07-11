@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Builder
-public class ResponseDto<T> {
-    private final T response;
+public class AuthenticationResponse  {
     private final String message;
+    private final String token;
 }

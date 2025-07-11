@@ -7,7 +7,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 @Builder
-public class ResponseDto<T> {
-    private final T response;
-    private final String message;
+public class RegistrationRequest {
+    private String email;
+    private String firstName;
+    private String lastName;
+    private String password;
 }

@@ -13,7 +13,7 @@ import spring.project.urlShortener.models.entities.Url;
 import spring.project.urlShortener.services.UrlService;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 public class UrlController {
 
     public UrlController(UrlService urlService) {

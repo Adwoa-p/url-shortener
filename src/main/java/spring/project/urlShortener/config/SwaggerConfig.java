@@ -14,12 +14,12 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(title = "URL Shortener", version = "v1"),
         security = @SecurityRequirement(name = "bearerAuth") // applies to all secured endpoints
 )
-//@SecurityScheme(
-//        name = "bearerAuth",
-//        type = SecuritySchemeType.HTTP,
-//        scheme = "bearer",
-//        bearerFormat = "JWT"
-//)
+@SecurityScheme(
+        name = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT"
+)
 public class SwaggerConfig {
     @Bean
     public GroupedOpenApi publicApi() {
