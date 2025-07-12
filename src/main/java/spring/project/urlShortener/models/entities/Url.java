@@ -18,13 +18,13 @@ public class Url {
 
     @Id
     @SequenceGenerator(
-            name = "todo_sequence",
-            sequenceName = "todo_sequence",
+            name = "url_sequence",
+            sequenceName = "url_sequence",
             allocationSize = 1
     )
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "todo_sequence"
+            generator = "url_sequence"
     )
     private Long id;
 
