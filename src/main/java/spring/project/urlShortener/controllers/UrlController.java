@@ -45,7 +45,7 @@ public class UrlController {
     @Operation(summary = "Retrieve a list of all stored URL entries")
     public ResponseEntity<Page<Url>> getAllUrls(@RequestParam (value = "pageNo", defaultValue = "0", required = false) int pageNo,
                                                 @RequestParam (value="pageSize", defaultValue = "10", required = false) int pageSize,
-                                                @RequestParam (defaultValue = "title",  required = false) String sortBy,
+                                                @RequestParam (defaultValue = "shortenedUrlString",  required = false) String sortBy,
                                                 @RequestParam (defaultValue = "true") boolean ascending) {
         return new ResponseEntity<>(urlService.getAllUrls(pageNo, pageSize, sortBy, ascending), HttpStatus.OK);
     }

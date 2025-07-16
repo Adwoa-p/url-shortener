@@ -31,11 +31,14 @@ public class User implements UserDetails{
     )
     private Long id;
 
+    @Column(unique = true)
     private String email;
     private String password;
     private String firstName;
     private String lastName;
+    private Boolean isDeleted;
 
+    @Builder.Default
     private Boolean locked=false;
     @Builder.Default
     private Boolean enabled = true;

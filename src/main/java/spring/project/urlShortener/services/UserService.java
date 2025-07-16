@@ -4,8 +4,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -28,6 +30,7 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username){
+        System.out.println("Trying to find user: " + username);;
         return userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
@@ -44,4 +47,31 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll(pageable);
     }
 
+    public ResponseDto<User> getUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return ResponseDto.<User>builder()
+                .message(String.format("Found user with id %d", id))
+                .response(user)
+                .build();
+    }
+
+    public ResponseDto<User> getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth==null || !auth.isAuthenticated()) {
+            throw new RuntimeException("Authentication required");
+        }
+        String username = auth.getName();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Username not Found"));
+        return ResponseDto.<User>builder()
+                .message("Returning Authenticated User")
+                .response(user)
+                .build();
+
+    }
+
+    // update user details
+    // delete user
 }
