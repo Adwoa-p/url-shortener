@@ -18,8 +18,10 @@ import java.util.function.Function;
 @Service
 public class JwtService {
     @Value("${app.jwtSecret}")
-    private String JWT_SECRET;
-    public final String SECRET_KEY = JWT_SECRET;
+    private String secretKey;
+    
+    @Value("${app.jwtExpirationMs}")
+    private long jwtExpirationMs;
 
     public String extractUsername(String jwtToken) {
         return extractClaim(jwtToken, Claims::getSubject);
@@ -35,8 +37,8 @@ public class JwtService {
                 .builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis())) // check expiration date to know if it has expired or not
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .setIssuedAt(new Date(System.currentTimeMillis())) // check the expiration date to know if it has expired or not
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -72,7 +74,7 @@ public class JwtService {
 
     // signin key
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
     

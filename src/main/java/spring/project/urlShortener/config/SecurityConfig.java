@@ -40,8 +40,8 @@ public class SecurityConfig {
                                 "/v3/api-docs.yaml",
                                 "/v3/api-docs/swagger-config",
                                 "/error",
-                                "/api/v1/signup",
-                                "/api/v1/signin"
+                                "/api/auth/signup",
+                                "/api/auth/signin"
                         )
                         .permitAll()
                         .anyRequest()

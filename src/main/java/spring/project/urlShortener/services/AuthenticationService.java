@@ -35,6 +35,7 @@ public class AuthenticationService {
                 .email(registrationRequest.getEmail())
                 .password(passwordEncoder.encode(registrationRequest.getPassword()))
                 .role(UserRole.USER)
+                .enabled(true)
                 .build();
         userRepository.save(user);
         return AuthenticationResponse.builder()

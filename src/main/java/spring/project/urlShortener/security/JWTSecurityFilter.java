@@ -32,7 +32,7 @@ public class JWTSecurityFilter extends OncePerRequestFilter {
 
         // skip filter or these endpoints
         String path = request.getServletPath();
-        if (path.equals("/api/v1/signin") || path.equals("/api/v1/signup")) {
+        if (path.equals("/api/auth/signin") || path.equals("/api/auth/signup")) {
             filterChain.doFilter(request, response);
             return;
         }
