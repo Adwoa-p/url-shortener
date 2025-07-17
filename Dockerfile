@@ -5,8 +5,11 @@ RUN mvn clean package -DskipTests
 
 
 FROM eclipse-temurin:17-jdk
-LABEL authors="pokua"
+
 WORKDIR /app
-COPY target/*.jar app.jar
+
+COPY target/urlShortener-0.0.1-SNAPSHOT.jar app/urlShortener-0.0.1-SNAPSHOT.jar
+
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+ENTRYPOINT ["java", "-jar", "urlShortener-0.0.1-SNAPSHOT.jar"]
