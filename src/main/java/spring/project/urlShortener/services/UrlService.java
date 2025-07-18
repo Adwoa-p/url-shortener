@@ -7,8 +7,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import spring.project.urlShortener.config.URLValidator;
 import spring.project.urlShortener.exceptions.ResourceNotFoundException;
+import spring.project.urlShortener.models.dtos.RandomUrlRequest;
 import spring.project.urlShortener.models.dtos.ResponseDto;
-import spring.project.urlShortener.models.dtos.UrlDto;
+import spring.project.urlShortener.models.dtos.CustomUrlRequest;
 import spring.project.urlShortener.models.entities.Url;
 import spring.project.urlShortener.repository.UrlRepository;
 import spring.project.urlShortener.config.CreateUrlHandler;
@@ -28,13 +29,13 @@ public class UrlService {
         this.check = check;
     }
 
-    public ResponseDto<Url> createUrl(UrlDto urlDto) {
-        return check.createUrlHandler(urlDto);
+    public ResponseDto<Url> createUrl(RandomUrlRequest randomUrlRequest) {
+        return check.createUrlHandler(randomUrlRequest);
 
     }
 
-    public ResponseDto<Url> createCustomUrl(UrlDto urlDto){
-        return check.createUrlHandler(urlDto);
+    public ResponseDto<Url> createCustomUrl(CustomUrlRequest customUrlRequest) {
+        return check.createUrlHandler(customUrlRequest);
     }
 
     public ResponseDto<Url> redirect(String shortenedUrlString) {
@@ -68,11 +69,11 @@ public class UrlService {
                 .build();
     }
 
-    public ResponseDto<String> updateUrl(Long id, UrlDto urlDto) {
+    public ResponseDto<String> updateUrl(Long id, CustomUrlRequest customUrlRequest) {
         Url longUrl = urlRepository.findByIdAndIsDeletedIsFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Long url with id %d not found", id)));
-        longUrl.setLongUrl(urlDto.getLongUrl());
-        longUrl.setShortenedUrlString(urlDto.getCustomUrlString());
+        longUrl.setLongUrl(customUrlRequest.getLongUrl());
+        longUrl.setShortenedUrlString(customUrlRequest.getCustomUrlString());
         urlRepository.save(longUrl);
         return ResponseDto.<String>builder()
                 .message(String.format( "Successfully updated url with id %d",id))

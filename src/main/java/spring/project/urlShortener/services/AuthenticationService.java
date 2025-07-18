@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import spring.project.urlShortener.models.dtos.AuthenticationRequest;
 import spring.project.urlShortener.models.dtos.AuthenticationResponse;
 import spring.project.urlShortener.models.dtos.RegistrationRequest;
+import spring.project.urlShortener.models.dtos.RegistrationResponse;
 import spring.project.urlShortener.models.entities.User;
 import spring.project.urlShortener.models.enums.UserRole;
 import spring.project.urlShortener.repository.UserRepository;
@@ -28,7 +29,7 @@ public class AuthenticationService {
         this.authenticationManager = authenticationManager;
     }
 
-    public AuthenticationResponse signup(RegistrationRequest registrationRequest) {
+    public RegistrationResponse signup(RegistrationRequest registrationRequest) {
         var user = User.builder()
                 .firstName(registrationRequest.getFirstName())
                 .lastName(registrationRequest.getLastName())
@@ -38,7 +39,7 @@ public class AuthenticationService {
                 .enabled(true)
                 .build();
         userRepository.save(user);
-        return AuthenticationResponse.builder()
+        return RegistrationResponse.builder()
                 .message(String.format("User with name %s %s created successfully", registrationRequest.getFirstName(), registrationRequest.getLastName()))
                 .build();
     }
