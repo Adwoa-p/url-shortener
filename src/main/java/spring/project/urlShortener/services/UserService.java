@@ -73,7 +73,6 @@ public class UserService implements UserDetailsService {
                 .message("Returning Authenticated User")
                 .response(userDto)
                 .build();
-
     }
 
     // update user details
