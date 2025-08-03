@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import spring.project.urlShortener.models.dtos.ResponseDto;
+import spring.project.urlShortener.models.dtos.UserDto;
 import spring.project.urlShortener.models.entities.User;
 import spring.project.urlShortener.services.UserService;
 
@@ -29,14 +30,14 @@ public class UserController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Returns a based on id")
-    public ResponseEntity<ResponseDto<User>> getUser(@PathVariable Long id){
+    public ResponseEntity<ResponseDto<UserDto>> getUser(@PathVariable Long id){
         return new ResponseEntity<>(userService.getUser(id), HttpStatus.FOUND);
     }
 
     // get the current authenticated user
     @GetMapping("/me")
     @Operation(summary = "Returns current authenticated user")
-    public ResponseEntity<ResponseDto<User>> getCurrentUser(){
+    public ResponseEntity<ResponseDto<UserDto>> getCurrentUser(){
         return new ResponseEntity<>(userService.getCurrentUser(), HttpStatus.FOUND);
     }
 

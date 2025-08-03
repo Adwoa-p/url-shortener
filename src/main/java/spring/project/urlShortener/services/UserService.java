@@ -13,7 +13,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import spring.project.urlShortener.exceptions.ResourceNotFoundException;
+import spring.project.urlShortener.models.UserMapper;
 import spring.project.urlShortener.models.dtos.ResponseDto;
+import spring.project.urlShortener.models.dtos.UserDto;
 import spring.project.urlShortener.models.entities.User;
 import spring.project.urlShortener.repository.UserRepository;
 
@@ -47,16 +49,17 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll(pageable);
     }
 
-    public ResponseDto<User> getUser(Long id) {
+    public ResponseDto<UserDto> getUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return ResponseDto.<User>builder()
+        UserDto userDto = UserMapper.toDTo(user);
+        return ResponseDto.<UserDto>builder()
                 .message(String.format("Found user with id %d", id))
-                .response(user)
+                .response(userDto)
                 .build();
     }
 
-    public ResponseDto<User> getCurrentUser() {
+    public ResponseDto<UserDto> getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth==null || !auth.isAuthenticated()) {
@@ -65,9 +68,10 @@ public class UserService implements UserDetailsService {
         String username = auth.getName();
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Username not Found"));
-        return ResponseDto.<User>builder()
+        UserDto userDto = UserMapper.toDTo(user);
+        return ResponseDto.<UserDto>builder()
                 .message("Returning Authenticated User")
-                .response(user)
+                .response(userDto)
                 .build();
 
     }

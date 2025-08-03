@@ -46,6 +46,11 @@ public class User implements UserDetails{
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
+    @PrePersist
+    public void onCreate() {
+        this.isDeleted = false;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // turns the role name into a permission object to allow the app know what that particular user/admin is allowed to do

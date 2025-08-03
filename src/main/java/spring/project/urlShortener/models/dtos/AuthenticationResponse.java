@@ -4,10 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
 @Builder
-public class AuthenticationResponse  {
-    private final String message;
-    private final String token;
+public record AuthenticationResponse(String message, String token) {
 }

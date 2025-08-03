@@ -3,12 +3,11 @@ package spring.project.urlShortener.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
+import spring.project.urlShortener.models.dtos.RandomUrlRequest;
 import spring.project.urlShortener.models.dtos.ResponseDto;
-import spring.project.urlShortener.models.dtos.UrlDto;
+import spring.project.urlShortener.models.dtos.CustomUrlRequest;
 import spring.project.urlShortener.models.entities.Url;
 import spring.project.urlShortener.services.UrlService;
 
@@ -24,14 +23,14 @@ public class UrlController {
 
     @Operation(summary = "Create a new shortened URL with a randomly generated string")
     @PostMapping("/urls")
-    public ResponseEntity<ResponseDto<Url>> createUrl(@RequestBody final UrlDto urlDto) {
-        return new ResponseEntity<>(urlService.createUrl(urlDto), HttpStatus.CREATED);
+    public ResponseEntity<ResponseDto<Url>> createUrl(@RequestBody final RandomUrlRequest randomUrlRequest) {
+        return new ResponseEntity<>(urlService.createUrl(randomUrlRequest), HttpStatus.CREATED);
     }
 
     @PostMapping("/urls/custom")
     @Operation(summary = "Create a new shortened URL with a user-defined custom string")
-    public ResponseEntity<ResponseDto<Url>> createCustomUrl(@RequestBody final UrlDto urlDto) {
-        return new ResponseEntity<>(urlService.createCustomUrl(urlDto), HttpStatus.CREATED);
+    public ResponseEntity<ResponseDto<Url>> createCustomUrl(@RequestBody final CustomUrlRequest customUrlRequest) {
+        return new ResponseEntity<>(urlService.createCustomUrl(customUrlRequest), HttpStatus.CREATED);
     }
 
 
@@ -58,8 +57,8 @@ public class UrlController {
 
     @PutMapping("/urls/{id}")
     @Operation(summary = "Update the details of an existing URL entry")
-    public ResponseEntity<ResponseDto<String>> updateUrl(@PathVariable("id") Long id, @RequestBody final UrlDto urlDto) {
-        return new ResponseEntity<>(urlService.updateUrl(id,urlDto), HttpStatus.OK);
+    public ResponseEntity<ResponseDto<String>> updateUrl(@PathVariable("id") Long id, @RequestBody final CustomUrlRequest customUrlRequest) {
+        return new ResponseEntity<>(urlService.updateUrl(id, customUrlRequest), HttpStatus.OK);
     }
 
     @DeleteMapping("/urls/{id}")

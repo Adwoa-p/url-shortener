@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import spring.project.urlShortener.models.dtos.AuthenticationRequest;
 import spring.project.urlShortener.models.dtos.AuthenticationResponse;
 import spring.project.urlShortener.models.dtos.RegistrationRequest;
+import spring.project.urlShortener.models.dtos.RegistrationResponse;
 import spring.project.urlShortener.services.AuthenticationService;
 
 // this is where we handle login, signup and getting JWT tokens
@@ -19,7 +20,7 @@ public class AuthenticationController {
 
     @Operation(summary = "Allow users to sign up")
     @PostMapping("/signup")
-    public ResponseEntity<AuthenticationResponse> signup(@RequestBody RegistrationRequest registrationRequest) {
+    public ResponseEntity<RegistrationResponse> signup(@RequestBody RegistrationRequest registrationRequest) {
         return new ResponseEntity<>(authenticationService.signup(registrationRequest), HttpStatus.CREATED);
     }
 
