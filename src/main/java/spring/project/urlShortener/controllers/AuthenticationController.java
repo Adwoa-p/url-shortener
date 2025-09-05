@@ -30,9 +30,4 @@ public class AuthenticationController {
         return new ResponseEntity<>(authenticationService.signin(authenticationRequest), HttpStatus.OK);
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "Controller is working";
-    }
-
 }

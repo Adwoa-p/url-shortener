@@ -40,21 +40,20 @@ public class SecurityConfig {
                                 "/v3/api-docs.yaml",
                                 "/v3/api-docs/swagger-config",
                                 "/error",
-                                "/api/auth/signup",
-                                "/api/auth/signin"
-                        )
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated()
+                                "/api/auth/**"
+                        ).permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/urls/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "ADMIN")
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .userDetailsService(userService)
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtSecurityFilter, UsernamePasswordAuthenticationFilter.class)
-        ;
+                .addFilterBefore(jwtSecurityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 }

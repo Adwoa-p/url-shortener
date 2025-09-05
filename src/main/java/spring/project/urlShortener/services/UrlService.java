@@ -11,9 +11,9 @@ import spring.project.urlShortener.models.dtos.RandomUrlRequest;
 import spring.project.urlShortener.models.dtos.ResponseDto;
 import spring.project.urlShortener.models.dtos.CustomUrlRequest;
 import spring.project.urlShortener.models.entities.Url;
+import spring.project.urlShortener.models.entities.User;
 import spring.project.urlShortener.repository.UrlRepository;
 import spring.project.urlShortener.config.CreateUrlHandler;
-
 import java.time.LocalDateTime;
 
 
@@ -22,11 +22,13 @@ public class UrlService {
     private final UrlRepository urlRepository;
     private final URLValidator urlValidator;
     private final CreateUrlHandler check;
+    private final UserService userService;
 
-    public UrlService(UrlRepository urlRepository, URLValidator urlValidator, CreateUrlHandler check) {
+    public UrlService(UrlRepository urlRepository, URLValidator urlValidator, CreateUrlHandler check, UserService userService) {
         this.urlRepository = urlRepository;
         this.urlValidator = urlValidator;
         this.check = check;
+        this.userService = userService;
     }
 
     public ResponseDto<Url> createUrl(RandomUrlRequest randomUrlRequest) {
@@ -54,21 +56,6 @@ public class UrlService {
                 .build();
     }
 
-    public Page<Url> getAllUrls(int pageNo, int pageSize, String sortBy, boolean ascending) {
-        Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
-        return urlRepository.findAllByIsDeletedIsFalse(pageable);
-    }
-
-    public ResponseDto<Url> getUrl(Long id) {
-        Url longUrl = urlRepository.findByIdAndIsDeletedIsFalse(id)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Long url with id %d not found", id)));
-        return ResponseDto.<Url>builder()
-                .message("Returning long url by ID")
-                .response(longUrl)
-                .build();
-    }
-
     public ResponseDto<String> updateUrl(Long id, CustomUrlRequest customUrlRequest) {
         Url longUrl = urlRepository.findByIdAndIsDeletedIsFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Long url with id %d not found", id)));
@@ -87,6 +74,25 @@ public class UrlService {
         urlRepository.save(longUrl);
         return ResponseDto.<String>builder()
                 .message(String.format( "Successfully deleted url with id %d",id))
+                .build();
+    }
+
+    public Page<Url> getAllMyUrls(int pageNo, int pageSize, String sortBy, boolean ascending) {
+        Sort sort = ascending ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+        User user = userService.getAuthenticatedUser();
+        return urlRepository.findAllByUser(user,pageable);
+    }
+
+    public ResponseDto<Url> getUrlById(Long id) {
+        User user = userService.getAuthenticatedUser();
+
+        Url longUrl = urlRepository.findByIdAndIsDeletedIsFalseAndUser(id,user)
+
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("Long url with id %d not found", id)));
+        return ResponseDto.<Url>builder()
+                .message("Returning long url")
+                .response(longUrl)
                 .build();
     }
 }

@@ -5,14 +5,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import spring.project.urlShortener.models.dtos.AuthenticationRequest;
-import spring.project.urlShortener.models.dtos.AuthenticationResponse;
-import spring.project.urlShortener.models.dtos.RegistrationRequest;
-import spring.project.urlShortener.models.dtos.RegistrationResponse;
+import spring.project.urlShortener.models.dtos.*;
+import spring.project.urlShortener.models.entities.Role;
 import spring.project.urlShortener.models.entities.User;
-import spring.project.urlShortener.models.enums.UserRole;
+import spring.project.urlShortener.repository.RoleRepository;
 import spring.project.urlShortener.repository.UserRepository;
 import spring.project.urlShortener.security.JwtService;
+
+import java.util.Set;
 
 
 @Service
@@ -21,21 +21,25 @@ public class AuthenticationService {
     private final JwtService service;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final RoleRepository roleRepository;
 
-    public AuthenticationService(UserRepository userRepository, JwtService service, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+    public AuthenticationService(UserRepository userRepository, JwtService service, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.service = service;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.roleRepository = roleRepository;
     }
 
     public RegistrationResponse signup(RegistrationRequest registrationRequest) {
+        Role userRole = roleRepository.findByName("ROLE_USER")
+                .orElseGet(() -> roleRepository.save(new Role("ROLE_USER")));
         var user = User.builder()
                 .firstName(registrationRequest.getFirstName())
                 .lastName(registrationRequest.getLastName())
                 .email(registrationRequest.getEmail())
                 .password(passwordEncoder.encode(registrationRequest.getPassword()))
-                .role(UserRole.USER)
+                .roles(Set.of(userRole))
                 .enabled(true)
                 .build();
         userRepository.save(user);

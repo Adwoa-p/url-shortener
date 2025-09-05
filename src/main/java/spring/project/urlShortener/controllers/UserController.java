@@ -1,17 +1,18 @@
 package spring.project.urlShortener.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.data.domain.Page;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import spring.project.urlShortener.models.dtos.PasswordRequest;
 import spring.project.urlShortener.models.dtos.ResponseDto;
-import spring.project.urlShortener.models.dtos.UserDto;
-import spring.project.urlShortener.models.entities.User;
+import spring.project.urlShortener.models.dtos.UserRequestDto;
+import spring.project.urlShortener.models.dtos.UserResponseDto;
 import spring.project.urlShortener.services.UserService;
 
 @RestController
-@RequestMapping("api/v1/users")
+@RequestMapping("api/users")
 public class UserController {
     private final UserService userService;
 
@@ -19,30 +20,31 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping()
-    @Operation(summary = "Returns all users in the DB")
-    public ResponseEntity<Page<User>> getAllUsers(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-                                                    @RequestParam (value="pageSize", defaultValue = "10", required = false) int pageSize,
-                                                    @RequestParam (defaultValue = "email",  required = false) String sortBy,
-                                                    @RequestParam (defaultValue = "true") boolean ascending) {
-        return new ResponseEntity<>(userService.getAllUsers(pageNo, pageSize, sortBy, ascending), HttpStatus.OK);
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Returns a based on id")
-    public ResponseEntity<ResponseDto<UserDto>> getUser(@PathVariable Long id){
-        return new ResponseEntity<>(userService.getUser(id), HttpStatus.FOUND);
-    }
-
     // get the current authenticated user
     @GetMapping("/me")
     @Operation(summary = "Returns current authenticated user")
-    public ResponseEntity<ResponseDto<UserDto>> getCurrentUser(){
+    public ResponseEntity<ResponseDto<UserResponseDto>> getCurrentUser() {
         return new ResponseEntity<>(userService.getCurrentUser(), HttpStatus.FOUND);
     }
 
     // update user details fully
-    // partially update user details - 1. activate 2.deactivate 3.update specific field(role)
-    // post - reset user password
+    @PutMapping("/{id}")
+    @Operation(summary = "Update current user details")
+    public ResponseEntity<ResponseDto<UserResponseDto>> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequestDto userRequestDto) {
+        return new ResponseEntity<>(userService.updateUser(id, userRequestDto), HttpStatus.OK);
+    }
+
+    // patch - reset user password
+    @PatchMapping("{id}/reset")
+    @Operation(summary = "Update User's password")
+    public ResponseEntity<ResponseDto<String>> updateUserPassword(@PathVariable Long id, @RequestBody PasswordRequest passwordRequest) {
+        return new ResponseEntity<>(userService.updatePassword(id, passwordRequest), HttpStatus.OK);
+    }
+
     // delete user
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete user")
+    public ResponseEntity<ResponseDto<String>> deleteUser(@PathVariable Long id) {
+        return new ResponseEntity<>(userService.deleteUser(id), HttpStatus.OK);
+    }
 }
