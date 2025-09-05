@@ -1,17 +1,17 @@
 package spring.project.urlShortener.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import spring.project.urlShortener.models.enums.UserRole;
+import spring.project.urlShortener.models.entities.Role;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-@Table(name = "appUser")
+@Table(name = "users")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -36,6 +36,11 @@ public class User implements UserDetails{
     private String password;
     private String firstName;
     private String lastName;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Url> urls;
+
     private Boolean isDeleted;
 
     @Builder.Default
@@ -43,8 +48,9 @@ public class User implements UserDetails{
     @Builder.Default
     private Boolean enabled = true;
 
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.EAGER)
+    private Set<Role> roles = new HashSet<>();
 
     @PrePersist
     public void onCreate() {
@@ -54,8 +60,9 @@ public class User implements UserDetails{
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // turns the role name into a permission object to allow the app know what that particular user/admin is allowed to do
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role.name());
-        return Collections.singletonList(authority);
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .collect(Collectors.toSet());
     }
 
     @Override
