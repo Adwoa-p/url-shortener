@@ -6,7 +6,6 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import spring.project.urlShortener.models.entities.Role;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,6 +39,10 @@ public class User implements UserDetails{
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<Url> urls;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<Visit> visits;
 
     private Boolean isDeleted;
 
