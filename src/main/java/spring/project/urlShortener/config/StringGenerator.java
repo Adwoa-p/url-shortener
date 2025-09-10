@@ -11,7 +11,7 @@ public class StringGenerator {
 
         SecureRandom secureRandom = new SecureRandom();
 
-        String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0; i < 8; i++){

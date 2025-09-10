@@ -13,7 +13,7 @@ import spring.project.urlShortener.services.AuthenticationService;
 
 // this is where we handle login, signup and getting JWT tokens
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @AllArgsConstructor
 public class AuthenticationController {
     private final AuthenticationService authenticationService;

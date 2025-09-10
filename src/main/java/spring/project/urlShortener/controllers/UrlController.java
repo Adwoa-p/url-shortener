@@ -37,7 +37,7 @@ public class UrlController {
     @GetMapping("/r/{short-url}")
     @Operation(summary = "Redirect to the original long URL")
     public ResponseEntity<ResponseDto<Url>> redirect (@PathVariable("short-url") String shortUrlString) {
-        return new ResponseEntity<>(urlService.redirect(shortUrlString), HttpStatus.FOUND);
+        return new ResponseEntity<>(urlService.redirect(shortUrlString), HttpStatus.MOVED_PERMANENTLY);
     }
 
     @GetMapping()
