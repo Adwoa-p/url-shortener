@@ -37,6 +37,11 @@ public class Url {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
+    @JoinColumn(name = "visit_id", nullable = false)
+    private Visit visit;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
